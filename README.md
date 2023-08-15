@@ -41,5 +41,5 @@ If **imagegen.py** is run by itself, a window opens, where you can preview the s
 
 The parts' names are shown under the sprite (with the first letter capitalized). These are taken from the filenames in `heads` and `bodies`, and in the case of `legs`, the subdirectory names, as legs support multiple pictures for multiple frames of animation. 
 
-Also has a function `get_sprite_by_names()`, which can be imported. It takes the aforementioned part names (filenames without extensions) as parameters, and returns a tuple of
+Also has a function `get_sprite_by_names()`, which can be imported. It takes the aforementioned part names (filenames without extensions) as parameters, and returns a tuple of  
 (`sprite standing still as a pygame.Surface`, `Looping Python Generator for walk animation frames`).
