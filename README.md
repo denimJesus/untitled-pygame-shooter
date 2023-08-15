@@ -7,13 +7,13 @@
 
 ## Usage
 - Run **main.py**.
-- Move with WASD or arrow keys (or press M to toggle mouse movement)
-- Die / get bored
+- Move with WASD or arrow keys (or press M to toggle mouse movement).
+- Die / get bored.
 - Press ESC to quit.
 
-Automatic shooting is planned, but not implemented yet, and only one enemy type spawns. Also included are next to no graphics, no sprite animations and no level ups, so pretty much no game yet either.
+Automatic shooting is planned, but not implemented yet, and only one enemy type spawns. Also included: next to no graphics, no sprite animations and no level ups, so pretty much no game yet either.
 
-Window size can be changed by editing the values of `WIDTH` and `HEIGHT` in **variables.py**. These, as well as the variable `SPRITE_SCALE` also affect non-visual things in the code, so were there any game balance, that might be affected as well.
+Window size can be changed by editing the values of `WIDTH` and `HEIGHT` in **variables.py**. These, as well as the variable `SPRITE_SCALE`, also affect non-visual things in the code, so were there any game balance, that might be affected as well.
 
 Even though no other inputs (outside future menus) are planned, for now there are debug keys for testing. These probably will change often (and can be found in event_queue.py), but at the time of writing they are as follows:
 ```
@@ -34,9 +34,9 @@ Key    Action
 ```
 
 ## Image Generator
-In the directory `./image_generator` is a simple Python file **imagegen.py** to generate a custom image for the player sprite, and demonstrate one idea on how to implement sprite animations. It blits images from files in the subdirectories `heads` and `legs` on an image in subdirectory `bodies`, and saves the resulting image.
+In the directory `./image_generator` is a file **imagegen.py** to generate a custom image for the player sprite, and demonstrate one idea on how to implement sprite animations. It blits images from files in the subdirectories `heads` and `legs` on an image in subdirectory `bodies`, and saves the resulting image.
 
-##### Usage
+#### Usage
 If **imagegen.py** is run by itself, a window opens, where you can preview the sprite. Parts can be changed with the keys Q/E (for heads), A/D (for bodies) and Z/C (for legs). ENTER saves the current selection as a .png file, which will be imported by the game as a player image. ESC quits without saving.
 
 The parts' names are shown under the sprite (with the first letter capitalized). These are taken from the filenames in `heads` and `bodies`, and in the case of `legs`, the subdirectory names, as legs support multiple pictures for multiple frames of animation. 
