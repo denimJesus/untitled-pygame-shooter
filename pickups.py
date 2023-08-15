@@ -87,6 +87,11 @@ class Item_Bombs(Item):
         self.dmg = dmg
 
         self.color = (0,0,0) # TODO: Pick a color
+        
+        # Temporary lines until update() draws graphics:
+        self.surf = pg.Surface([10,10])
+        self.surf.fill(self.color)
+        self.rect = self.surf.get_rect(center = (pos_x, pos_y))
 
     def pickup(self):
         for _ in range(self.amount):
