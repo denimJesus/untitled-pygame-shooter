@@ -1,5 +1,5 @@
 # untitled-pygame-shooter
-> An unfinished and unplayable game-like thing faintly resembling Vampire Survivors, made to practice Python, Pygame and basics of game development.
+> An unfinished (and all but unplayable) game-like thing faintly resembling Vampire Survivors. Made to practice Python, Pygame and basics of game development.
 
 ## Technologies Used
 - Python 3.11.2
@@ -13,9 +13,9 @@
 
 Automatic shooting is planned, but not implemented yet, and only one enemy type spawns. Also included: next to no graphics, no sprite animations and no level ups, so pretty much no game yet either.
 
-Window size can be changed by editing the values of `WIDTH` and `HEIGHT` in **variables.py**. These, as well as the variable `SPRITE_SCALE`, also affect non-visual things in the code, so were there any game balance, that might be affected as well.
+Window size can be changed by editing the values of `WIDTH` and `HEIGHT` in **variables.py**. These, as well as the variable `SPRITE_SCALE`, also affect non-visual things in the code, so were there any kind of game balance yet, that might be affected as well.
 
-Even though no other inputs (outside future menus) are planned, for now there are debug keys for testing. These probably will change often (and can be found in event_queue.py), but at the time of writing they are as follows:
+Even though no other controls (outside menus) are planned, for now there are debug keys for testing. These probably will change often (and can be found in event_queue.py), but at the time of writing they are as follows:
 ```
 Key    Action
  1    Spawn 3 bullets orbiting player
@@ -30,16 +30,16 @@ Key    Action
  0    Kill all enemies
  P    Spawn Enemy_Follow from random direction (an enemy moving towards player)
  O    Spawn Worm (unfinished enemy type)
- I    Spawn a "bombs" pickup at coordinates (100,100) (spawns an explosion on 3 random enemies)
+ I    Spawn a "bombs" pickup at coordinates (100, 100) (spawns an explosion on 3 random enemies)
 ```
 
 ## Image Generator
-In the directory `./image_generator` is a file **imagegen.py** to generate a custom image for the player sprite, and demonstrate one idea on how to implement sprite animations. It blits images from files in the subdirectories `heads` and `legs` on an image in subdirectory `bodies`, and saves the resulting image.
+The directory `./image_generator` has a file named **imagegen.py**. It can generate a custom image for the player sprite, and demonstrates one idea on how to possibly implement sprite animations. It blits images from files in the subdirectories `heads` and `legs` on an image in subdirectory `bodies`, and saves the resulting image. Legs support multiple images, which are used to create a Generator object (named `animator`), with `next(animator)` yielding the next frame of a walk animation.
 
 #### Usage
-If **imagegen.py** is run by itself, a window opens, where you can preview the sprite. Parts can be changed with the keys Q/E (for heads), A/D (for bodies) and Z/C (for legs). ENTER saves the current selection as a .png file, which will be imported by the game as a player image. ESC quits without saving.
+If **imagegen.py** is run by itself, a window opens, where you can build and preview the sprite. Parts can be selected with the keys Q/E (for heads), A/D (for bodies) and Z/C (for legs). ENTER saves the current selection as a .png file, which will be imported by the game as a player image. ESC quits without saving.
 
-The parts' names are shown under the sprite (with the first letter capitalized). These are taken from the filenames in `heads` and `bodies`, and in the case of `legs`, the subdirectory names, as legs support multiple pictures for multiple frames of animation. 
+The parts' names are shown under the sprite (with the first letter capitalized). These are taken from the filenames in `heads` and `bodies`, and in the case of `legs`, the subdirectory names. 
 
-Also has a function `get_sprite_by_names()`, which can be imported. It takes the aforementioned part names (filenames without extensions) as parameters, and returns a tuple of  
+File also includes a function `get_sprite_by_names()`, which can be imported. It takes the aforementioned part names (filenames, without extensions) as parameters, and returns a tuple of  
 (`sprite standing still as a pygame.Surface`, `Looping Python Generator for walk animation frames`).
