@@ -1,6 +1,5 @@
 import pygame as pg
 import misc, weapons
-from image_generator.imagegen import get_sprite_by_names
 from pygame.locals import *
 from variables import *
 
@@ -32,7 +31,6 @@ class Player(pg.sprite.Sprite):
             except FileNotFoundError:
                 self.surf = pg.Surface([30, 40])
                 self.surf.fill((255,255,255))
-        # self.surf, self.animation = get_sprite_by_names("skull", "rogue", "skeleton")
         self.surf.set_colorkey((0,255,0))
         if not (SPRITE_SCALE == 1 or SPRITE_SCALE == 0):
             self.surf = pg.transform.scale_by(self.surf, SPRITE_SCALE)
@@ -142,5 +140,3 @@ class Player(pg.sprite.Sprite):
         """ Move every non-player (and non-ui) sprite (-x,-y) pixels """
         for sprite in all_sprites:
             sprite.rect.move_ip(-x,-y)
-            # if hasattr(sprite, "target") and type(sprite.target) is tuple:
-                # sprite.target = (sprite.target[0]-x, sprite.target[1]-y)
