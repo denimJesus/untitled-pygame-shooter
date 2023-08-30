@@ -25,7 +25,7 @@ def get_random_enemy():
 
 def get_distance(point1, point2 = (0,0)):
     """ Return distance between two tuples or Sprites' centers.
-    
+
     Point2 defaults to (0,0), so passing only one point returns length of the single vector """
     if type(point1) is not tuple:
         point1 = point1.rect.center
@@ -50,34 +50,34 @@ def get_step_p(vector: tuple, speed = 1, inverse = False):
 
     If inverse is truthy, turns anti-clockwise instead. """
     x, y = vector
-    speed_factor = speed / get_distance((0,0), vector)    
-    
+    speed_factor = speed / get_distance((0,0), vector)
+
     if inverse:
         return (-y * speed_factor, x * speed_factor)
     else:
         return (y * speed_factor, -x * speed_factor)
-        
+
 def get_spawn(side = None, distance = 50):
     """ Returns a tuple of a random point a bit off-screen.
-    
-    Parameter side excepts an int of 0, 1, 2 or 3, 
-    representing the upper, right-hand, lower and left-hand sides 
+
+    Parameter side excepts an int of 0, 1, 2 or 3,
+    representing the upper, right-hand, lower and left-hand sides
     of the screen, respectively. If side == None, will be randomized.
     """
     if not side:
         side = random.randrange(4)
     if side == 0:   # Up
-        x = random.randint(-WIDTH * 0.2, WIDTH * 1.2)
+        x = random.randint(int(-WIDTH * 0.2), int(WIDTH * 1.2))
         y = -distance
     elif side == 1: # Right
         x = WIDTH + distance
-        y = random.randint(-HEIGHT * 0.3, HEIGHT * 1.3)
+        y = random.randint(int(-HEIGHT * 0.3), int(HEIGHT * 1.3))
     elif side == 2: # Down
-        x = random.randint(-WIDTH * 0.2, WIDTH * 1.2)
+        x = random.randint(int(-WIDTH * 0.2), int(WIDTH * 1.2))
         y = HEIGHT + distance
     elif side == 3: # Left
         x = -distance
-        y = random.randint(-HEIGHT * 0.3, HEIGHT * 1.3)
+        y = random.randint(int(-HEIGHT * 0.3), int(HEIGHT * 1.3))
     else:
         print("Invalid spawn side")
     return (x, y)

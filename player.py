@@ -1,5 +1,5 @@
 import pygame as pg
-import misc
+import misc, weapons
 from image_generator.imagegen import get_sprite_by_names
 from pygame.locals import *
 from variables import *
@@ -12,6 +12,7 @@ class Player(pg.sprite.Sprite):
         xp_to_next_level: XP points needed for next level. XP resets on leveling.
         invulnerable: Ticks of invulnerability (i-frames)
         pickup_distance: Distance from which XP and pickups are picked up
+        weapons = List of instances of weapons.Weapon
 
     Methods:
         update(): Pygame's Sprite-update. Decreases i-frames, also checks for movement input for now.
@@ -20,8 +21,9 @@ class Player(pg.sprite.Sprite):
         levelup(): Trigger leveling up; increases [xp_to_next_level] and resets [xp].
             (levelup() is, at least for now, called by Xp.pickup() and not Player)
     """
-    def __init__(self, hp = 20):
+    def __init__(self, game, hp = 20):
         super().__init__()
+        self.game = game
         try:
             self.surf = pg.image.load("./image_generator/sprite.png").convert()
         except:
@@ -44,11 +46,18 @@ class Player(pg.sprite.Sprite):
         self.invulnerable = 0
         self.pickup_distance = DEFAULT_PICKUP_DISTANCE * SPRITE_SCALE
         self.mouse_movement_enabled = False
+        self.bullet_damage = 1
+
+        # Create a List of weapons.Weapon instances (with some starting weapons at least for now)
+        self.weapons = [weapons.Weapon(game, weapons.Bullet_Line),
+                        weapons.Weapon(game, weapons.Orbiters, 500)]
 
     def update(self):
-        """ Decreases i-frames, also checks for movement input for now. """
+        """ Decrease i-frames, fire weapons, check for movement input. """
         if self.invulnerable > 0:
             self.invulnerable -= 1
+        for weapon in self.weapons:
+            weapon.fire()
         # Keyboard input for player movement with arrows & WASD
         if not self.mouse_movement_enabled:
             keys = pg.key.get_pressed()
@@ -73,10 +82,10 @@ class Player(pg.sprite.Sprite):
         else:
             MIN_MOUSE_DISTANCE = 30
             mouse_x, mouse_y = pg.mouse.get_pos()
-            distance_from_player = misc.get_distance((mouse_x, mouse_y), self.rect.center)
-            speed_multiplier = min(1, (distance_from_player - MIN_MOUSE_DISTANCE)/WIDTH*3.5)
+            distance_fromplayer = misc.get_distance((mouse_x, mouse_y), self.rect.center)
+            speed_multiplier = min(1, (distance_fromplayer - MIN_MOUSE_DISTANCE)/WIDTH*3.5)
 
-            if distance_from_player > MIN_MOUSE_DISTANCE:
+            if distance_fromplayer > MIN_MOUSE_DISTANCE:
                 if 3*abs(mouse_x - self.rect.center[0])/WIDTH > abs(mouse_y - self.rect.center[1])/HEIGHT:
                     if mouse_x > self.rect.center[0]:
                         self.move_player(self.speed * speed_multiplier, 0)
@@ -135,4 +144,3 @@ class Player(pg.sprite.Sprite):
             sprite.rect.move_ip(-x,-y)
             # if hasattr(sprite, "target") and type(sprite.target) is tuple:
                 # sprite.target = (sprite.target[0]-x, sprite.target[1]-y)
-            

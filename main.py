@@ -7,11 +7,11 @@ from variables import *
 pg.init()
 SCREEN = pg.display.set_mode(SCREEN_SIZE)
 
-class App():
+class Game():
     def __init__(self):
         self.ticks = 0
         self.screen = SCREEN
-        self.player = Player()
+        self.player = Player(self)
         self.initialize_game()
         self.spawn_timer = STARTING_SPAWN_TIME
         self.clock = pg.time.Clock()
@@ -38,20 +38,58 @@ class App():
 
     def initialize_level(self):
         """ Initialize level. Just spawn a few random obstacles on screen for now. """
-        for _ in range(WIDTH // 150):
+        for _ in range(WIDTH // 10):
             size = (size_x, size_y) = (random.randint(20*SPRITE_SCALE, 100*SPRITE_SCALE),
                                        random.randint(20*SPRITE_SCALE, 100*SPRITE_SCALE))
-            position = (pos_x, pos_y) = (random.randint(0, WIDTH), random.randint(0, HEIGHT))
-            while abs(pos_x - self.player.rect.centerx) < 50 + size_x and abs(pos_y - self.player.rect.centery) < 50 + size_y:
-                position = (pos_x, pos_y) = (random.randint(0, WIDTH), random.randint(0, HEIGHT))
-            world.World(*position, *size)
+            position = (pos_x, pos_y) = (random.randint(-600, WIDTH+600), random.randint(-600, HEIGHT+600))
+            while abs(pos_x - self.player.rect.centerx) < 50 + size_x and \
+                  abs(pos_y - self.player.rect.centery) < 50 + size_y:
+                position = (pos_x, pos_y) = (random.randint(-600, WIDTH+600), random.randint(-600, HEIGHT+600))
+            world.World(self, *position, *size)
 
     def spawn_enemies(self):
-        """ Spawns enemies at decreasing intervals, starting at STARTING_SPAWN_TIME ticks apart """
+        """ Spawns enemies at decreasing intervals, starting at STARTING_SPAWN_TIME ticks apart
+        Also spawn bigger waves of increasing size or major enemies every now and then """
         self.spawn_timer -= 1
         if self.spawn_timer == 0:
-            enemies.Enemy_Follow(self, misc.get_spawn())
+            enemy_type = random.choices([enemies.Enemy_Follow, enemies.Enemy_Sine], (0.9, 0.1))
+            stats = (hp, speed, damage) = (3+self.ticks//5000, 1+self.ticks//15000, 1+self.ticks//10000)
+            enemy_type[0](self, misc.get_spawn(), None, *stats)
             self.spawn_timer = max(10, STARTING_SPAWN_TIME - self.ticks//100)
+
+        # Spawn one of 4 "wave types"
+        if self.ticks % 1500 == 0:
+            wave_type = random.randrange(4)
+            # Worms
+            if wave_type == 0:
+                wave_size = 1 + self.ticks//7000
+                for _ in range(wave_size):
+                    distance_offset = random.randrange(100)
+                    enemies.Enemy_Worm_Head(self, misc.get_spawn(None, 100 + distance_offset))
+            # A closely spawning group of Enemy_Follow
+            elif wave_type == 1:
+                wave_size = 1 + self.ticks//1500
+                group_center = misc.get_spawn(None, 200)
+                for _ in range(wave_size):
+                    random_x_offset = random.randrange(150)
+                    random_y_offset = random.randrange(150)
+                    position = (group_center[0] + random_x_offset, group_center[1] + random_y_offset)
+                    enemies.Enemy_Follow(self, position)
+            # A closely spawning group of Enemy_Sine
+            elif wave_type == 2:
+                wave_size = 1 + self.ticks//2500
+                group_center = misc.get_spawn(None, 300)
+                for _ in range(wave_size):
+                    random_x_offset = random.randrange(250)
+                    random_y_offset = random.randrange(250)
+                    position = (group_center[0] + random_x_offset, group_center[1] + random_y_offset)
+                    enemies.Enemy_Sine(self, position)
+            # Randomly placed Enemy_Sines
+            elif wave_type == 3:
+                wave_size = 1 + self.ticks//1500
+                for _ in range(wave_size):
+                    distance_offset = random.randrange(150)
+                    enemies.Enemy_Sine(self, misc.get_spawn(None, 150 + distance_offset))
 
     def check_collisions(self):
         """ Checks for non-movement related collision.
@@ -66,10 +104,6 @@ class App():
             if pg.sprite.collide_rect_ratio(1.01)(sprite, self.player) and self.player.hp > 0:
                 self.player.damage(sprite.dmg)
                 sprite.damage()
-                
-        for sprite in tail_group: # Temp, for testing
-            if pg.sprite.spritecollideany(sprite, bullet_group):
-                sprite.damage()
 
     def render_screen(self):
         """ Fill background, blit sprites and flip() the screen """
@@ -83,4 +117,4 @@ class App():
         SCREEN.fill((20,20,150))
 
 if __name__ == "__main__":
-    App().main()
+    Game().main()

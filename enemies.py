@@ -20,11 +20,11 @@ class Enemy(pg.sprite.Sprite):
     def __init__(self, game, position = misc.get_spawn, hp = 3, dmg = 1, solid = True):
         super().__init__()
         self.game = game
-        self.player = game.player        
+        self.player = game.player
         self.surf = pg.Surface([19,25])
         self.color = (60,255,60)
         self.surf.fill(self.color)
-        
+
         if not (SPRITE_SCALE == 1 or SPRITE_SCALE == 0):
             self.surf = pg.transform.scale_by(self.surf, SPRITE_SCALE)
 
@@ -34,7 +34,7 @@ class Enemy(pg.sprite.Sprite):
         else:
             self.rect.center = position()
 
-        self.hp = hp
+        self.hp = hp + game.ticks//4000
         self.dmg = dmg
         self.solid = solid
         self.invulnerable = 0
@@ -70,8 +70,10 @@ class Enemy(pg.sprite.Sprite):
         self.rect.center = temp_center
 
     def death(self):
-        """ Drop XP and die """
-        pickups.Xp(self.game, *self.rect.center, random.randrange(len(pickups.Xp._colors))+1)
+        """ Drop XP (and every once in a while, a Bombs-item) and die """
+        pickups.Xp(self.game, *self.rect.center, random.randrange(len(pickups.Xp.colors))+1)
+        if random.randrange(100) < 5:
+            pickups.Item_Bombs(self.game, *self.rect.center)
         self.kill()
 
 class Enemy_Follow(Enemy):
@@ -85,6 +87,9 @@ class Enemy_Follow(Enemy):
             self.color = None
         except FileNotFoundError:
             pass
+
+        if not (SPRITE_SCALE == 1 or SPRITE_SCALE == 0):
+            self.surf = pg.transform.scale_by(self.surf, SPRITE_SCALE)
         self.rect = self.surf.get_rect(center = self.rect.center)
         self.speed = speed
 
@@ -141,37 +146,63 @@ class Enemy_Sine(Enemy_Follow):
         self.rect.move_ip(self.offset)
 
 class Enemy_Worm_Head(Enemy):
-    """ Worm type enemy head (incomplete) """
-    def __init__(self, game, position = misc.get_spawn, tail_length = 20, size = 20, turn_rate = 7,
-                turn_speed = 7, hp = 3, speed = 5, dmg = 1, solid = False):
+    """ Worm type enemy head
+
+    Variables not in Enemy:
+        tail_length
+            Length of Worm.
+        size
+            Side of square pg.Surface. Passed to child as one smaller.
+        turn_rate
+            Divides ticks in movement's sin() for shaping wave.
+        turn_speed
+            Speed of sideways movement
+        child
+            "Attached" Enemy_Worm_Tail(). tail_length, size and dmg are passed to child as smaller.
+
+    No idea what to do after collision yet, so solid probably shouldn't be set True.
+    """
+    def __init__(self, game, position = misc.get_spawn, tail_length = 30, size = 25, turn_rate = 7,
+                turn_speed = 7, hp = 5, speed = 5, dmg = 1, solid = False):
         super().__init__(game, position, hp, dmg, solid)
+        self._centerx, self._centery = game.player.rect.center # For targeting regardless of screen resolution
         self.surf = pg.Surface([size,size])
         self.surf.fill((0,255,0))
         self.surf.set_colorkey((0,255,0))
+        self.color = (50, 150, 50)
         self.rect = self.surf.get_rect(center = (self.rect.center))
-        pg.draw.circle(self.surf, (50,250,50), self.rect.center, size/2)
+        pg.draw.circle(self.surf, self.color, (size//2, size//2), size//2)
         self.turn_rate = turn_rate
         self.turn_speed = turn_speed
         self.speed = speed
         self.last_position = self.rect.center # For checking if and where the tail should follow
+        self.get_target() # To set self.step and self.sidestep for movement
 
-        # Ottaa targetin jostain pelaajan läheltä spawnautuessaan, kulkee sen läpi kiemurrellen
-        # kunnes despawnautuu ja vaihtaa suuntaa lähtien takaisin ruudun samasta sivusta?
-        target = (game.player.rect.centerx + random.randint(-200, 200),
-                  game.player.rect.centery + random.randint(-200, 200))
-        self.step = misc.get_step(self, target, self.speed)
-        self.sidestep = misc.get_step_p(self.step, self.turn_speed)
-        
         all_sprites.add(self)
         enemy_group.add(self)
 
         if tail_length > 0:
-            self.child = Enemy_Worm_Tail(self, tail_length - 1, size - 2)
+            self.child = Enemy_Worm_Tail(self, tail_length - 1, size - 1, hp - 0.25)
         else:
             self.child = None
 
     def update(self):
         super().update()
+        spawn_side = None
+        # If far enough outside the screen, take new target and spawn again from the same side
+        if self.rect.centery < -1000:
+            spawn_side = 0
+        elif self.rect.centerx > WIDTH+1000:
+            spawn_side = 1
+        elif self.rect.centery > HEIGHT+1000:
+            spawn_side = 2
+        elif self.rect.centerx < -1000:
+            spawn_side = 3
+
+        if spawn_side is not None:
+            self.get_target()
+            self.rect.center = misc.get_spawn(spawn_side)
+
         self.last_position = self.rect.center
         # Combine step forward to sideways move, apply sine for wave (with turn_rate for tweaking shape)
         x_move, y_move = (self.step[0] + self.sidestep[0] * math.sin(self.game.ticks/self.turn_rate),
@@ -179,9 +210,17 @@ class Enemy_Worm_Head(Enemy):
         self.rect.move_ip(x_move, y_move)
         if self.rect.center == self.last_position: # If movement was completely blocked, set to None
             self.last_position = None
-            
+
+    def get_target(self):
+        """ Set target to a random point near player """
+        target = (self._centerx + random.randint(-200, 200),
+                  self._centery + random.randint(-200, 200))
+        self.step = misc.get_step(self, target, self.speed)
+        self.sidestep = misc.get_step_p(self.step, self.turn_speed)
+
     def damage(self, amount = 1):
-        """ If the whole (attached) tail is dead, take damage. Else transfer the damage to the last part of remaining tail """ 
+        """ If the whole (attached) tail is dead, take damage.
+        Else transfer the damage to the last part of remaining tail """
         if self.invulnerable:
             return
         if self.child:
@@ -193,8 +232,8 @@ class Enemy_Worm_Head(Enemy):
         self.invulnerable = 5
 
 class Enemy_Worm_Tail(pg.sprite.Sprite):
-    """ Child object following Enemy_Worm_Head (and other Tails)  (incomplete) """
-    def __init__(self, parent, tail_length, size):
+    """ Child object following Enemy_Worm_Head (and other Tails) """
+    def __init__(self, parent, tail_length, size, hp):
         super().__init__()
         self.surf = pg.Surface([size,size])
         self.rect = self.surf.get_rect()
@@ -206,20 +245,16 @@ class Enemy_Worm_Tail(pg.sprite.Sprite):
 
         self.rect.center = self.parent.last_position
         self.last_position = self.parent.last_position
-        self.hp = parent.hp
+        self.hp = max(hp, 1)
+        self.size = max(size, 10)
         self.dmg = parent.dmg
         self.invulnerable = 0
-        if size < 5:
-            size = 5
-        self.size = size
 
         all_sprites.add(self)
         enemy_group.add(self)
-        # tail_group.add(self)
-        self.dead = False
 
         if tail_length > 0:
-            self.child = Enemy_Worm_Tail(self, tail_length - 1, size - 1)
+            self.child = Enemy_Worm_Tail(self, tail_length - 1, self.size - 0.5, self.hp - 0.25)
         else:
             self.child = None
 
@@ -235,7 +270,7 @@ class Enemy_Worm_Tail(pg.sprite.Sprite):
 
     def damage(self, amount = 1):
         """ Decrease HP and set i-frames. """
-        if self.invulnerable or self.dead:
+        if self.invulnerable:
             return
         self.hp -= amount
         self.color = pg.Color(self.color).lerp((70,0,0), 0.5)
@@ -244,20 +279,18 @@ class Enemy_Worm_Tail(pg.sprite.Sprite):
         if self.hp <= 0:
             self.death()
         self.invulnerable = 5
-        
+
     def pass_damage(self, amount):
         """ Pass damage from head on to last child. """
         if self.child:
             self.child.pass_damage(amount)
         else:
             self.damage(amount)
-    
+
     def death(self):
         """ TODO: everything """
-        self.dead = True
         if self.parent:
             self.parent.child = None
             self.parent = None
-        self.child = None
+        # self.child = None
         enemy_group.remove(self)
-        # self.kill()
