@@ -81,7 +81,7 @@ class Player(pg.sprite.Sprite):
             MIN_MOUSE_DISTANCE = 30
             mouse_x, mouse_y = pg.mouse.get_pos()
             distance_fromplayer = misc.get_distance((mouse_x, mouse_y), self.rect.center)
-            speed_multiplier = min(1, (distance_fromplayer - MIN_MOUSE_DISTANCE)/WIDTH*3.5)
+            speed_multiplier = min(1, (distance_fromplayer - MIN_MOUSE_DISTANCE)/HEIGHT*3.5)
 
             if distance_fromplayer > MIN_MOUSE_DISTANCE:
                 if 3*abs(mouse_x - self.rect.center[0])/WIDTH > abs(mouse_y - self.rect.center[1])/HEIGHT:
@@ -125,9 +125,19 @@ class Player(pg.sprite.Sprite):
                 self.player_death()
 
     def levelup(self):
+        """ Resets XP to 0, raises XP needed and level, upgrades weapons, damage, pickup_distance & speed"""
         self.xp -= self.xp_to_next_level
         self.xp_to_next_level *= 1.5
         self.lvl += 1
+        self.bullet_damage *= 1.3
+        self.pickup_distance *= 1.1
+        if self.lvl % 3 == 0:
+            self.speed += 1
+        for weapon in self.weapons:
+            weapon.cooldown_max /= 1.05
+            weapon.speed *= 1.2
+            weapon.ttl *= 1.1
+            weapon.radius *= 1.05
 
     def player_death(self):
         """ Very much temporary, just playing around for now """

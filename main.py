@@ -37,7 +37,7 @@ class Game():
             self.ticks += 1
 
     def initialize_level(self):
-        """ Initialize level. Just spawn a few random obstacles on screen for now. """
+        """ Initialize level. Just spawns a few random obstacles for now. """
         for _ in range(WIDTH // 10):
             size = (size_x, size_y) = (random.randint(20*SPRITE_SCALE, 100*SPRITE_SCALE),
                                        random.randint(20*SPRITE_SCALE, 100*SPRITE_SCALE))
@@ -48,12 +48,12 @@ class Game():
             world.World(self, *position, *size)
 
     def spawn_enemies(self):
-        """ Spawns enemies at decreasing intervals, starting at STARTING_SPAWN_TIME ticks apart
+        """ Spawn enemies at decreasing intervals, starting at STARTING_SPAWN_TIME ticks apart
         Also spawn bigger waves of increasing size or major enemies every now and then """
         self.spawn_timer -= 1
         if self.spawn_timer == 0:
             enemy_type = random.choices([enemies.Enemy_Follow, enemies.Enemy_Sine], (0.9, 0.1))
-            stats = (hp, speed, damage) = (3+self.ticks//5000, 1+self.ticks//15000, 1+self.ticks//10000)
+            stats = (hp, speed, damage) = (3+self.ticks//6000, 1+self.ticks//17000, 1+self.ticks//12000)
             enemy_type[0](self, misc.get_spawn(), None, *stats)
             self.spawn_timer = max(10, STARTING_SPAWN_TIME - self.ticks//100)
 
@@ -94,7 +94,7 @@ class Game():
     def check_collisions(self):
         """ Checks for non-movement related collision.
 
-        Checks collision of bullets/enemies and enemies/player and deals damage for now.
+        Checks collision of bullets/enemies and enemies/player and deals damage.
         Movement related collision is in each sprite's update() function, and checking
         distance for pickups happens in the pickup's update().
         """

@@ -72,16 +72,21 @@ class Item_Decoy(Item):
             if self.ttl >= 0:
                 self.ttl -= 1
             if self.ttl == 0:
-                # TODO: Set enemy targets back to player
+                for sprite in enemy_group:
+                    if hasattr(sprite, "target"):
+                        sprite.target = player.rect.center
                 self.kill()
 
     def pickup(self):
         """ Set enemy targets to own position """
-        pass
+        target = Target(self.game, self.rect.center)
+        for sprite in enemy_group:
+            if hasattr(sprite, "target"):
+                sprite.target = target
 
 class Item_Bombs(Item):
     """ Powerup item that spawns [amount] of explosions on random enemies doing [dmg] damage each """
-    def __init__(self, game, pos_x, pos_y, amount = 3, dmg = 2):
+    def __init__(self, game, pos_x, pos_y, amount = 5, dmg = 4):
         super().__init__(game, pos_x, pos_y)
         self.amount = amount
         self.dmg = dmg

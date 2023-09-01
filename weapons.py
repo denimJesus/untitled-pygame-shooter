@@ -146,7 +146,7 @@ class Explosion(pg.sprite.Sprite):
     Because the animation is drawn in update(), needs the main loop's rendering to fill
     background AFTER flipping the screen instead of before.
     """
-    def __init__(self, game, target: tuple or Sprite = None, dmg = 3, diameter = 100):
+    def __init__(self, game, target: tuple or Sprite = None, dmg = 3, diameter = 200):
         super().__init__()
         self.surf = pg.Surface([diameter, diameter//2])
         self.rect = self.surf.get_rect()
@@ -171,13 +171,13 @@ class Explosion(pg.sprite.Sprite):
         self.animation_frame += 1
         if self.animation_frame < 50: # For 50 updates, draw ever growing ellipses:
             pg.draw.ellipse(self.game.screen, (100,100,100),
-                            self.rect.inflate(self.animation_frame-50,
-                            self.animation_frame-50))
+                            self.rect.inflate(self.animation_frame*2 - 100,
+                            self.animation_frame*2 - 100))
             return
         # After 50 ticks of "animation", deal damage, draw ellipse, die:
         for sprite in pg.sprite.spritecollide(self, enemy_group, False, pg.sprite.collide_circle):
             sprite.damage(self.dmg)
-        pg.draw.ellipse(self.game.screen, (255,255,255), self.rect.inflate(5,5))
+        pg.draw.ellipse(self.game.screen, (255,255,255), self.rect.inflate(10,10))
         self.kill()
 
 class Orbiters():

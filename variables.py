@@ -1,6 +1,6 @@
 from pygame import sprite
 
-SCREEN_SIZE = (WIDTH, HEIGHT) = 800, 600
+SCREEN_SIZE = (WIDTH, HEIGHT) = 1600, 900
 
 SPRITE_SCALE = 1
 

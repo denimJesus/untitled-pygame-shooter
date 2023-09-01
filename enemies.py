@@ -58,7 +58,8 @@ class Enemy(pg.sprite.Sprite):
             self.death()
         self.invulnerable = 5
 
-        self.surf = pg.transform.scale_by(self.surf, 0.8)
+        if self.rect.width > 5:
+            self.surf = pg.transform.scale_by(self.surf, 0.9)
         if self.color:  # If sprite's image is not loaded
             temp_color_r, temp_color_g, temp_color_b = self.color
             temp_color_g = max(temp_color_g-100, 0)
@@ -90,13 +91,14 @@ class Enemy_Follow(Enemy):
 
         if not (SPRITE_SCALE == 1 or SPRITE_SCALE == 0):
             self.surf = pg.transform.scale_by(self.surf, SPRITE_SCALE)
+
         self.rect = self.surf.get_rect(center = self.rect.center)
         self.speed = speed
 
         if target is None: # Default to player...
             self.target = self.player.rect.center
         elif type(target) is tuple: # ...but allow targeting coordinates...
-            self.target = target
+            self.target = Target(game, target)
         else: #  ...as well as other Sprites
             self.target = target.rect.center
 
@@ -158,14 +160,14 @@ class Enemy_Worm_Head(Enemy):
         turn_speed
             Speed of sideways movement
         child
-            "Attached" Enemy_Worm_Tail(). tail_length, size and dmg are passed to child as smaller.
+            "Attached" Enemy_Worm_Tail(). Tail_length, size and dmg are passed to child with smaller values.
 
     No idea what to do after collision yet, so solid probably shouldn't be set True.
     """
     def __init__(self, game, position = misc.get_spawn, tail_length = 30, size = 25, turn_rate = 7,
                 turn_speed = 7, hp = 5, speed = 5, dmg = 1, solid = False):
         super().__init__(game, position, hp, dmg, solid)
-        self._centerx, self._centery = game.player.rect.center # For targeting regardless of screen resolution
+        self.centerx, self.centery = game.player.rect.center # For targeting regardless of screen resolution
         self.surf = pg.Surface([size,size])
         self.surf.fill((0,255,0))
         self.surf.set_colorkey((0,255,0))
@@ -213,8 +215,8 @@ class Enemy_Worm_Head(Enemy):
 
     def get_target(self):
         """ Set target to a random point near player """
-        target = (self._centerx + random.randint(-200, 200),
-                  self._centery + random.randint(-200, 200))
+        target = (self.centerx + random.randint(-200, 200),
+                  self.centery + random.randint(-200, 200))
         self.step = misc.get_step(self, target, self.speed)
         self.sidestep = misc.get_step_p(self.step, self.turn_speed)
 
@@ -288,9 +290,22 @@ class Enemy_Worm_Tail(pg.sprite.Sprite):
             self.damage(amount)
 
     def death(self):
-        """ TODO: everything """
         if self.parent:
             self.parent.child = None
             self.parent = None
-        # self.child = None
         enemy_group.remove(self)
+        
+class Target(pg.sprite.Sprite):
+    """ A simple class for easily movable targets """
+    def __init__(self, game, position):
+        super().__init__()
+        self.game = game
+
+        if type(position) is tuple: # Allow targeting coordinates...
+            self.position = position
+        else: #  ...as well as other Sprites
+            self.position = position.rect.center
+
+        self.surf = pg.Surface([0,0])
+        self.rect = self.surf.get_rect(center = self.position)
+        all_sprites.add(self)
